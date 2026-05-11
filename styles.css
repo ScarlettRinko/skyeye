@@ -64,7 +64,6 @@ button {
 .map {
   position: absolute;
   inset: 0;
-  z-index: 0;
   background:
     linear-gradient(45deg, rgba(72, 224, 164, 0.06), transparent),
     #07110d;
@@ -794,6 +793,19 @@ button:disabled {
   touch-action: none;
   background: #07110d;
   font-family: inherit;
+}
+
+.leaflet-control-container {
+  position: relative;
+  z-index: 390;
+}
+
+.target-boundary-path {
+  filter: drop-shadow(0 0 5px rgba(72, 224, 164, 0.88));
+}
+
+.wrong-boundary-path {
+  filter: drop-shadow(0 0 4px rgba(231, 200, 116, 0.58));
 }
 
 .answer-marker {

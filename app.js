@@ -249,7 +249,7 @@
     const labelPane = map.getPane("boundaryLabelPane");
     boundaryPane.style.zIndex = 430;
     boundaryPane.style.pointerEvents = "none";
-    labelPane.style.zIndex = 460;
+    labelPane.style.zIndex = 440;
     labelPane.style.pointerEvents = "none";
   }
 
@@ -550,10 +550,11 @@
     targetBoundaryLayer = L.geoJSON(geojson, {
       pane: "boundaryPane",
       interactive: false,
+      className: "target-boundary-path",
       style: {
         color: "#48e0a4",
-        weight: 3,
-        opacity: 0.98,
+        weight: 4,
+        opacity: 1,
         fill: false,
         fillOpacity: 0,
       },
@@ -576,13 +577,14 @@
     const layer = L.geoJSON(geojson, {
       pane: "boundaryPane",
       interactive: false,
+      className: "wrong-boundary-path",
       style: {
-        color: "#d8b96a",
-        weight: 2,
-        opacity: 0.92,
+        color: "#e7c874",
+        weight: 3,
+        opacity: 0.98,
         fill: true,
-        fillColor: "rgba(231, 200, 116, 0.1)",
-        fillOpacity: 0.18,
+        fillColor: "rgba(231, 200, 116, 0.14)",
+        fillOpacity: 0.26,
       },
     }).addTo(guessBoundaryLayerGroup);
 
@@ -780,8 +782,8 @@
     const stripe = document.createElementNS(namespace, "path");
     stripe.setAttribute("d", "M 0 0 L 0 10");
     stripe.setAttribute("stroke", "#e7c874");
-    stripe.setAttribute("stroke-opacity", "0.24");
-    stripe.setAttribute("stroke-width", "2.4");
+    stripe.setAttribute("stroke-opacity", "0.38");
+    stripe.setAttribute("stroke-width", "2.6");
 
     pattern.append(stripe);
     defs.append(pattern);
