@@ -22,7 +22,7 @@
     { label: "省域", spanKm: 1024 },
     { label: "大区", spanKm: 2048 },
   ];
-  const BOUNDARY_BASE_URL = "https://geo.datav.aliyun.com/areas_v3/bound";
+  const BOUNDARY_DIRECT_BASE_URL = "https://geo.datav.aliyun.com/areas_v3/bound";
   const TAIWAN_BOUNDARY_URL =
     "https://raw.githubusercontent.com/g0v/twgeojson/master/json/twCounty2010merge.topo.json";
   const TAIWAN_BOUNDARY_NAMES_BY_CODE = {
@@ -623,7 +623,7 @@
     if (!boundaryCache.has(code)) {
       boundaryCache.set(
         code,
-        fetch(`${BOUNDARY_BASE_URL}/${code}.json`)
+        fetch(getBoundaryUrl(code))
           .then((response) => {
             if (!response.ok) {
               throw new Error(`Boundary ${code} returned ${response.status}`);
@@ -639,6 +639,24 @@
     }
 
     return boundaryCache.get(code);
+  }
+
+  function getBoundaryUrl(code) {
+    if (shouldUseBoundaryProxy()) {
+      return `/api/boundary?code=${encodeURIComponent(code)}`;
+    }
+
+    return `${BOUNDARY_DIRECT_BASE_URL}/${code}.json`;
+  }
+
+  function shouldUseBoundaryProxy() {
+    const hostname = window.location.hostname;
+    return Boolean(
+      hostname &&
+        hostname !== "localhost" &&
+        hostname !== "127.0.0.1" &&
+        hostname !== "::1",
+    );
   }
 
   async function loadTaiwanBoundary(code) {
