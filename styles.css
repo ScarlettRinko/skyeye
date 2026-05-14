@@ -75,6 +75,16 @@ button {
   box-shadow: var(--shadow);
 }
 
+.game-select:not([hidden]) .game-select-card {
+  transform-origin: center;
+  animation: page-panel-pop 280ms cubic-bezier(0.2, 0.86, 0.28, 1.18) both;
+}
+
+.game-select:not([hidden]) .game-card {
+  animation: choice-card-pop 260ms ease-out backwards;
+  animation-delay: var(--choice-delay, 80ms);
+}
+
 .game-select-header {
   display: grid;
   gap: 8px;
@@ -651,6 +661,15 @@ button:disabled {
     rgba(255, 255, 255, 0.05);
 }
 
+.history-row.is-new {
+  transform-origin: center;
+  animation: history-row-arrive 320ms cubic-bezier(0.2, 0.88, 0.25, 1.12) both;
+}
+
+.history-row.is-new .try-index {
+  animation: history-index-wake 520ms ease-out both;
+}
+
 .history-row.tone-cold {
   --slot-tone: #83a7ff;
   --slot-glow: rgba(131, 167, 255, 0.2);
@@ -847,6 +866,17 @@ button:disabled {
   backdrop-filter: blur(8px);
 }
 
+.city-picker-dialog[open],
+.result-dialog[open] {
+  transform-origin: center;
+  animation: dialog-pop 220ms cubic-bezier(0.2, 0.86, 0.26, 1.14) both;
+}
+
+.city-picker-dialog[open]::backdrop,
+.result-dialog[open]::backdrop {
+  animation: dialog-backdrop-in 220ms ease-out both;
+}
+
 .city-picker-shell {
   display: grid;
   grid-template-rows: auto auto minmax(0, 1fr);
@@ -1041,11 +1071,17 @@ button:disabled {
 }
 
 .target-boundary-path {
-  filter: drop-shadow(0 0 5px rgba(72, 224, 164, 0.88));
+  --target-boundary-filter-rest: drop-shadow(0 0 4px rgba(72, 224, 164, 0.76));
+  --target-boundary-filter-live:
+    drop-shadow(0 0 7px rgba(72, 224, 164, 0.95))
+    drop-shadow(0 0 15px rgba(72, 224, 164, 0.2));
+  filter: var(--target-boundary-filter-rest);
+  animation: target-boundary-breathe 2.8s ease-in-out infinite;
 }
 
 .wrong-boundary-path {
   filter: drop-shadow(0 0 4px rgba(231, 200, 116, 0.58));
+  animation: wrong-boundary-arrive 280ms ease-out both;
 }
 
 .atlas-county-path {
@@ -1053,12 +1089,49 @@ button:disabled {
 }
 
 .atlas-target-boundary-path {
-  filter:
-    drop-shadow(0 0 5px rgba(72, 224, 164, 0.92))
-    drop-shadow(0 0 18px rgba(72, 224, 164, 0.2));
+  --target-boundary-filter-rest:
+    drop-shadow(0 0 5px rgba(72, 224, 164, 0.82))
+    drop-shadow(0 0 15px rgba(72, 224, 164, 0.16));
+  --target-boundary-filter-live:
+    drop-shadow(0 0 8px rgba(72, 224, 164, 0.96))
+    drop-shadow(0 0 22px rgba(72, 224, 164, 0.24));
+}
+
+.target-center-marker {
+  position: relative;
+  display: block;
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  animation: target-marker-breathe 2.5s ease-in-out infinite;
+}
+
+.target-center-marker::before,
+.target-center-marker::after {
+  position: absolute;
+  border-radius: inherit;
+  content: "";
+}
+
+.target-center-marker::before {
+  left: 50%;
+  top: 50%;
+  width: 10px;
+  height: 10px;
+  border: 2px solid rgba(255, 255, 255, 0.88);
+  background: rgba(72, 224, 164, 0.92);
+  box-shadow: 0 0 10px rgba(72, 224, 164, 0.42);
+  transform: translate(-50%, -50%);
+}
+
+.target-center-marker::after {
+  inset: 4px;
+  border: 1px solid rgba(72, 224, 164, 0.5);
+  box-shadow: 0 0 12px rgba(72, 224, 164, 0.2);
 }
 
 .answer-marker {
+  position: relative;
   display: grid;
   place-items: center;
   width: 26px;
@@ -1067,6 +1140,16 @@ button:disabled {
   border-radius: 999px;
   background: var(--accent);
   box-shadow: 0 0 0 8px rgba(72, 224, 164, 0.22);
+  animation: target-marker-breathe 2.5s ease-in-out infinite;
+}
+
+.answer-marker::after {
+  position: absolute;
+  inset: -7px;
+  border: 1px solid rgba(72, 224, 164, 0.34);
+  border-radius: inherit;
+  content: "";
+  animation: target-marker-ring 2.5s ease-in-out infinite;
 }
 
 .county-seat-dot {
@@ -1117,6 +1200,7 @@ button:disabled {
   text-overflow: ellipsis;
   text-shadow: 0 1px 3px rgba(0, 0, 0, 0.85);
   white-space: nowrap;
+  animation: wrong-label-pop 240ms ease-out both;
 }
 
 .result-dialog {
@@ -1162,6 +1246,170 @@ button:disabled {
   grid-template-columns: 1fr 1fr;
   gap: 10px;
   margin-top: 24px;
+}
+
+@keyframes page-panel-pop {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.975);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes choice-card-pop {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.975);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes dialog-pop {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.965);
+  }
+
+  72% {
+    opacity: 1;
+    transform: translateY(-1px) scale(1.004);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes dialog-backdrop-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes history-row-arrive {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.985);
+  }
+
+  70% {
+    opacity: 1;
+    transform: translateY(-1px) scale(1.006);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes history-index-wake {
+  from {
+    box-shadow: 0 0 0 0 var(--slot-glow);
+  }
+
+  50% {
+    box-shadow: 0 0 0 6px var(--slot-glow);
+  }
+
+  to {
+    box-shadow: 0 0 0 0 transparent;
+  }
+}
+
+@keyframes target-boundary-breathe {
+  0%,
+  100% {
+    filter: var(--target-boundary-filter-rest);
+    stroke-opacity: 0.82;
+  }
+
+  50% {
+    filter: var(--target-boundary-filter-live);
+    stroke-opacity: 1;
+  }
+}
+
+@keyframes target-marker-breathe {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 5px rgba(72, 224, 164, 0.32));
+    transform: scale(0.98);
+  }
+
+  50% {
+    filter: drop-shadow(0 0 9px rgba(72, 224, 164, 0.46));
+    transform: scale(1.04);
+  }
+}
+
+@keyframes target-marker-ring {
+  0%,
+  100% {
+    opacity: 0.48;
+    transform: scale(0.96);
+  }
+
+  50% {
+    opacity: 0.78;
+    transform: scale(1.05);
+  }
+}
+
+@keyframes wrong-boundary-arrive {
+  from {
+    opacity: 0;
+    stroke-opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+    stroke-opacity: 0.98;
+  }
+}
+
+@keyframes wrong-label-pop {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -44%) scale(0.94);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .game-select:not([hidden]) .game-select-card,
+  .game-select:not([hidden]) .game-card,
+  .city-picker-dialog[open],
+  .result-dialog[open],
+  .city-picker-dialog[open]::backdrop,
+  .result-dialog[open]::backdrop,
+  .history-row.is-new,
+  .history-row.is-new .try-index,
+  .target-boundary-path,
+  .wrong-boundary-path,
+  .target-center-marker,
+  .answer-marker,
+  .answer-marker::after,
+  .wrong-boundary-label span {
+    animation: none;
+  }
 }
 
 @media (max-width: 960px) {

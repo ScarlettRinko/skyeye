@@ -84,6 +84,8 @@ export function initChinaleApp(gameList, options = {}) {
   let map = null;
   let satelliteTileLayer = null;
   let answerMarker = null;
+  let targetCenterMarker = null;
+  let targetCenterMarkerCode = "";
   let targetBoundaryLayer = null;
   let guessBoundaryLayerGroup = null;
   let guessLabelLayerGroup = null;
@@ -94,6 +96,7 @@ export function initChinaleApp(gameList, options = {}) {
   let mapRefreshFrame = null;
   let correctingMapView = false;
   let highlightedSuggestion = -1;
+  let historyRevealIndex = -1;
   let stats = loadStats(activeGame);
   let state = createEmptyState();
 
@@ -179,7 +182,7 @@ export function initChinaleApp(gameList, options = {}) {
     els.gameChoiceGrid.innerHTML = games
       .map(
         (game, index) => `
-          <button class="game-card" type="button" data-game-id="${escapeHtml(game.id)}">
+          <button class="game-card" type="button" data-game-id="${escapeHtml(game.id)}" style="--choice-delay: ${80 + index * 54}ms">
             <span class="game-card-icon"><i data-lucide="${escapeHtml(game.badgeIcon || "map")}"></i></span>
             <span class="game-card-main">
               <small>关卡 ${index + 1}</small>
@@ -457,6 +460,7 @@ export function initChinaleApp(gameList, options = {}) {
       puzzleKey,
     };
     boundaryRenderToken += 1;
+    historyRevealIndex = -1;
 
     if (answerMarker) {
       answerMarker.remove();
@@ -530,6 +534,7 @@ export function initChinaleApp(gameList, options = {}) {
       bearing,
       correct,
     });
+    historyRevealIndex = state.attempts.length - 1;
 
     els.cityInput.value = "";
     closeSuggestions();
@@ -688,6 +693,7 @@ export function initChinaleApp(gameList, options = {}) {
       return;
     }
 
+    clearTargetCenterMarker();
     if (!answerMarker) {
       answerMarker = L.marker([state.target.lat, state.target.lng], {
         icon: L.divIcon({
@@ -709,6 +715,7 @@ export function initChinaleApp(gameList, options = {}) {
       targetBoundaryLayer.remove();
       targetBoundaryLayer = null;
     }
+    clearTargetCenterMarker();
     guessBoundaryLayerGroup?.clearLayers();
     guessLabelLayerGroup?.clearLayers();
     atlasSubdivisionLayerGroup?.clearLayers();
@@ -718,11 +725,46 @@ export function initChinaleApp(gameList, options = {}) {
 
   function renderMapForCurrentGame(token) {
     if (activeGame.mapMode === "atlas") {
+      clearTargetCenterMarker();
       renderAtlasTarget(token);
       return;
     }
 
+    renderTargetCenterMarker();
     renderTargetBoundary(token);
+  }
+
+  function renderTargetCenterMarker() {
+    if (!map || !window.L || !state.target || activeGame.mapMode !== "satellite") {
+      return;
+    }
+
+    const markerCode = String(state.target.code || state.target.name);
+    if (targetCenterMarker && targetCenterMarkerCode === markerCode) {
+      return;
+    }
+
+    clearTargetCenterMarker();
+    targetCenterMarkerCode = markerCode;
+    targetCenterMarker = L.marker([state.target.lat, state.target.lng], {
+      pane: "boundaryLabelPane",
+      interactive: false,
+      keyboard: false,
+      icon: L.divIcon({
+        className: "",
+        html: '<span class="target-center-marker" aria-hidden="true"></span>',
+        iconSize: [24, 24],
+        iconAnchor: [12, 12],
+      }),
+    }).addTo(map);
+  }
+
+  function clearTargetCenterMarker() {
+    if (targetCenterMarker) {
+      targetCenterMarker.remove();
+      targetCenterMarker = null;
+    }
+    targetCenterMarkerCode = "";
   }
 
   async function renderTargetBoundary(token) {
@@ -1443,6 +1485,8 @@ export function initChinaleApp(gameList, options = {}) {
   }
 
   function renderHistory() {
+    const revealIndex = historyRevealIndex;
+    historyRevealIndex = -1;
     els.history.innerHTML = Array.from({ length: MAX_ATTEMPTS }, (_, index) => {
       const attempt = state.attempts[index];
       if (!attempt) {
@@ -1460,8 +1504,15 @@ export function initChinaleApp(gameList, options = {}) {
         : state.finished && index === state.attempts.length - 1
           ? "is-final"
           : "";
+      const rowClass = [
+        "history-row",
+        `tone-${tone}`,
+        index === revealIndex ? "is-new" : "",
+      ]
+        .filter(Boolean)
+        .join(" ");
       return `
-        <div class="history-row tone-${tone}">
+        <div class="${rowClass}">
           <span class="try-index ${indexClass}">${index + 1}</span>
           <span class="history-main">
             <strong class="history-name">${attempt.city.name}</strong>
