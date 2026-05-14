@@ -40,21 +40,6 @@
           </button>
         </header>
 
-        <div class="status-grid">
-          <div class="metric">
-            <span>轮次</span>
-            <strong id="roundLabel">1 / 6</strong>
-          </div>
-          <div class="metric">
-            <span>题库</span>
-            <strong id="cityCount">345</strong>
-          </div>
-          <div class="metric">
-            <span>连胜</span>
-            <strong id="streakCount">0</strong>
-          </div>
-        </div>
-
         <form class="guess-form" id="guessForm" autocomplete="off">
           <label for="cityInput">城市</label>
           <div class="input-wrap">
@@ -70,11 +55,11 @@
           </div>
           <div class="suggestions" id="suggestions" role="listbox"></div>
           <div class="guess-actions">
-            <button class="primary-button" type="submit">
+            <button class="primary-button" type="submit" title="猜一下">
               <i data-lucide="crosshair"></i>
               <span>猜一下</span>
             </button>
-            <button class="secondary-button" id="openPickerButton" type="button">
+            <button class="secondary-button" id="openPickerButton" type="button" title="选城市">
               <i data-lucide="layout-grid"></i>
               <span>选城市</span>
             </button>
@@ -102,15 +87,32 @@
           <div class="history" id="history"></div>
         </section>
 
-        <div class="actions">
-          <button class="secondary-button" id="resetButton" type="button">
-            <i data-lucide="rotate-ccw"></i>
-            <span>重开本题</span>
-          </button>
-          <button class="secondary-button" id="shareButton" type="button" disabled>
-            <i data-lucide="copy"></i>
-            <span>复制战绩</span>
-          </button>
+        <div class="footer-panel">
+          <div class="actions">
+            <button class="secondary-button" id="resetButton" type="button" title="重开本题">
+              <i data-lucide="rotate-ccw"></i>
+              <span>重开本题</span>
+            </button>
+            <button class="secondary-button" id="shareButton" type="button" title="复制战绩" disabled>
+              <i data-lucide="copy"></i>
+              <span>复制战绩</span>
+            </button>
+          </div>
+
+          <div class="status-grid">
+            <div class="metric">
+              <span>轮次</span>
+              <strong id="roundLabel">1 / 6</strong>
+            </div>
+            <div class="metric">
+              <span>题库</span>
+              <strong id="cityCount">345</strong>
+            </div>
+            <div class="metric">
+              <span>连胜</span>
+              <strong id="streakCount">0</strong>
+            </div>
+          </div>
         </div>
       </aside>
     </main>

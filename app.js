@@ -1014,34 +1014,41 @@
   }
 
   function renderHistory() {
-    if (!state.attempts.length) {
-      els.history.innerHTML = '<div class="history-empty">暂无记录</div>';
-      return;
-    }
-
-    els.history.innerHTML = state.attempts
-      .map((attempt, index) => {
-        const temperature = getTemperature(attempt.distance, attempt.correct);
-        const indexClass = attempt.correct
-          ? "is-correct"
-          : state.finished && index === state.attempts.length - 1
-            ? "is-final"
-            : "";
-        const hint = attempt.correct
-          ? "命中"
-          : `${formatKm(attempt.distance)} ${renderDirectionArrow(attempt.bearing)}`;
+    els.history.innerHTML = Array.from({ length: MAX_ATTEMPTS }, (_, index) => {
+      const attempt = state.attempts[index];
+      if (!attempt) {
         return `
-          <div class="history-row">
-            <span class="try-index ${indexClass}">${index + 1}</span>
-            <span>
-              <strong class="history-name">${attempt.city.name}</strong>
-              <small class="history-hint">${hint}</small>
-            </span>
-            <span class="temperature ${temperature.className}">${temperature.label}</span>
+          <div class="history-row is-empty" aria-label="第 ${index + 1} 次未猜">
+            <span class="try-index is-empty">${index + 1}</span>
           </div>
         `;
-      })
-      .join("");
+      }
+
+      const temperature = getTemperature(attempt.distance, attempt.correct);
+      const tone = temperature.className || "near";
+      const indexClass = attempt.correct
+        ? "is-correct"
+        : state.finished && index === state.attempts.length - 1
+          ? "is-final"
+          : "";
+      return `
+        <div class="history-row tone-${tone}">
+          <span class="try-index ${indexClass}">${index + 1}</span>
+          <span class="history-main">
+            <strong class="history-name">${attempt.city.name}</strong>
+            <small class="history-hint">
+              <span class="history-distance">${formatKm(attempt.distance)}</span>
+              ${
+                attempt.correct
+                  ? '<span class="history-hit">命中</span>'
+                  : renderHistoryDirectionIcon(attempt.bearing, tone)
+              }
+            </small>
+          </span>
+        </div>
+      `;
+    }).join("");
+    refreshIcons();
   }
 
   function renderZoomStack() {
@@ -1091,7 +1098,14 @@
     const normalizedBearing = Number.isFinite(bearing) ? bearing : 0;
     return `<span class="direction-arrow" style="--bearing:${normalizedBearing.toFixed(
       2,
-    )}deg" aria-label="指向目标">↑</span>`;
+    )}deg" aria-label="指向目标"><i data-lucide="arrow-up"></i></span>`;
+  }
+
+  function renderHistoryDirectionIcon(bearing, tone) {
+    const normalizedBearing = Number.isFinite(bearing) ? bearing : 0;
+    return `<span class="history-direction tone-${tone}" style="--bearing:${normalizedBearing.toFixed(
+      2,
+    )}deg" aria-label="指向目标"><i data-lucide="arrow-up"></i></span>`;
   }
 
   function scheduleMapRefresh() {
