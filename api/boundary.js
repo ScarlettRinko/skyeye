@@ -17,6 +17,10 @@ module.exports = async function handler(request, response) {
     ? request.query.code[0]
     : request.query.code;
   const code = String(rawCode || "").trim();
+  const rawFull = Array.isArray(request.query.full)
+    ? request.query.full[0]
+    : request.query.full;
+  const full = ["1", "true", "full"].includes(String(rawFull || "").toLowerCase());
 
   if (!/^\d{6}$/.test(code)) {
     response.status(400).json({ error: "Invalid city code" });
@@ -24,11 +28,11 @@ module.exports = async function handler(request, response) {
   }
 
   try {
-    const upstream = await fetch(`${BOUNDARY_BASE_URL}/${code}.json`, {
+    const upstream = await fetch(`${BOUNDARY_BASE_URL}/${code}${full ? "_full" : ""}.json`, {
       headers: {
         Accept: "application/json",
         "User-Agent":
-          "Mozilla/5.0 (compatible; SkyEyeBoundaryProxy/1.0; +https://skyeye.suki.house)",
+          "Mozilla/5.0 (compatible; ChinaleBoundaryProxy/1.0; +https://chinale.suki.house)",
       },
     });
 

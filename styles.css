@@ -35,6 +35,10 @@ body {
     #0b1713;
 }
 
+[hidden] {
+  display: none !important;
+}
+
 button,
 input {
   font: inherit;
@@ -43,6 +47,125 @@ input {
 button {
   border: 0;
   color: inherit;
+}
+
+.game-select {
+  display: grid;
+  min-height: 100vh;
+  padding: 34px;
+  place-items: center;
+}
+
+.game-select-panel {
+  display: grid;
+  width: min(840px, 100%);
+}
+
+.game-select-card {
+  display: grid;
+  gap: 22px;
+  max-height: calc(100vh - 68px);
+  padding: 28px;
+  overflow: auto;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: var(--radius);
+  background:
+    linear-gradient(145deg, rgba(12, 35, 28, 0.96), rgba(13, 19, 22, 0.96)),
+    var(--panel-strong);
+  box-shadow: var(--shadow);
+}
+
+.game-select-header {
+  display: grid;
+  gap: 8px;
+}
+
+.game-select-header p:last-child {
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.game-choice-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.game-card {
+  display: grid;
+  grid-template-columns: 54px minmax(0, 1fr) 22px;
+  gap: 14px;
+  align-items: center;
+  min-height: 140px;
+  padding: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: var(--radius);
+  background:
+    linear-gradient(145deg, rgba(72, 224, 164, 0.12), rgba(255, 255, 255, 0.055)),
+    rgba(255, 255, 255, 0.06);
+  cursor: pointer;
+  text-align: left;
+  box-shadow: var(--shadow);
+  transition:
+    transform 160ms ease,
+    border-color 160ms ease,
+    background 160ms ease;
+}
+
+.game-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(72, 224, 164, 0.5);
+  background:
+    linear-gradient(145deg, rgba(72, 224, 164, 0.18), rgba(95, 212, 255, 0.08)),
+    rgba(255, 255, 255, 0.08);
+}
+
+.game-card-icon {
+  display: grid;
+  place-items: center;
+  width: 54px;
+  height: 54px;
+  border: 1px solid rgba(72, 224, 164, 0.28);
+  border-radius: var(--radius);
+  color: var(--accent);
+  background: rgba(72, 224, 164, 0.12);
+}
+
+.game-card-icon svg {
+  width: 27px;
+  height: 27px;
+}
+
+.game-card-main {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+.game-card-main strong {
+  font-size: 28px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.game-card-main small {
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.game-card-main span {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.game-card > svg {
+  color: var(--accent);
 }
 
 .shell {
@@ -182,6 +305,12 @@ button {
   justify-content: space-between;
   gap: 18px;
   margin-bottom: 24px;
+}
+
+.brand-actions {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 8px;
 }
 
 .eyebrow {
@@ -896,6 +1025,16 @@ button:disabled {
   font-family: inherit;
 }
 
+.map.is-atlas-map {
+  background:
+    radial-gradient(circle at 38% 42%, rgba(95, 212, 255, 0.12), transparent 38%),
+    linear-gradient(135deg, rgba(9, 36, 32, 0.98), rgba(11, 16, 20, 0.98) 58%, rgba(25, 23, 16, 0.98));
+}
+
+.map.is-atlas-map.leaflet-container {
+  background: transparent;
+}
+
 .leaflet-control-container {
   position: relative;
   z-index: 390;
@@ -909,6 +1048,16 @@ button:disabled {
   filter: drop-shadow(0 0 4px rgba(231, 200, 116, 0.58));
 }
 
+.atlas-county-path {
+  filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.16));
+}
+
+.atlas-target-boundary-path {
+  filter:
+    drop-shadow(0 0 5px rgba(72, 224, 164, 0.92))
+    drop-shadow(0 0 18px rgba(72, 224, 164, 0.2));
+}
+
 .answer-marker {
   display: grid;
   place-items: center;
@@ -918,6 +1067,32 @@ button:disabled {
   border-radius: 999px;
   background: var(--accent);
   box-shadow: 0 0 0 8px rgba(72, 224, 164, 0.22);
+}
+
+.county-seat-dot {
+  display: block;
+  width: 12px;
+  height: 12px;
+  border: 2px solid rgba(8, 13, 12, 0.82);
+  border-radius: 999px;
+  background: #ffd166;
+  box-shadow:
+    0 0 0 2px rgba(255, 255, 255, 0.72),
+    0 0 14px rgba(255, 209, 102, 0.48);
+}
+
+.county-seat-district {
+  background: #5fd4ff;
+  box-shadow:
+    0 0 0 2px rgba(255, 255, 255, 0.74),
+    0 0 14px rgba(95, 212, 255, 0.52);
+}
+
+.county-seat-countyCity {
+  background: #b987ff;
+  box-shadow:
+    0 0 0 2px rgba(255, 255, 255, 0.72),
+    0 0 14px rgba(185, 135, 255, 0.52);
 }
 
 .wrong-boundary-label {
@@ -1096,6 +1271,39 @@ button:disabled {
 }
 
 @media (max-width: 560px) {
+  .game-select {
+    padding: 22px;
+    place-items: stretch;
+  }
+
+  .game-select-panel {
+    align-content: center;
+  }
+
+  .game-select-card {
+    max-height: calc(100dvh - 44px);
+    padding: 20px;
+  }
+
+  .game-choice-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .game-card {
+    min-height: 118px;
+    grid-template-columns: 48px minmax(0, 1fr) 20px;
+    padding: 16px;
+  }
+
+  .game-card-icon {
+    width: 48px;
+    height: 48px;
+  }
+
+  .game-card-main strong {
+    font-size: 24px;
+  }
+
   .map-stage {
     flex-basis: clamp(180px, 32svh, 260px);
   }

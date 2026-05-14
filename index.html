@@ -5,9 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta
       name="description"
-      content="天眼 345 城：从无标注卫星图猜中国城市。"
+      content="猜城 345：从卫星影像或行政版图猜中国城市。"
     />
-    <title>天眼 345 城</title>
+    <title>猜城 345</title>
     <link
       rel="stylesheet"
       href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
@@ -17,7 +17,20 @@
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <main class="shell">
+    <main class="game-select" id="gameSelect" aria-label="游戏选择">
+      <section class="game-select-panel">
+        <div class="game-select-card">
+          <header class="game-select-header">
+            <p class="eyebrow">Chinale 345</p>
+            <h1>猜城 345</h1>
+            <p>选择一个关卡开始挑战。</p>
+          </header>
+          <div class="game-choice-grid" id="gameChoiceGrid"></div>
+        </div>
+      </section>
+    </main>
+
+    <main class="shell" id="gameShell" hidden>
       <section class="map-stage" aria-label="卫星影像区域">
         <div id="map" class="map"></div>
         <div class="map-vignette" aria-hidden="true"></div>
@@ -32,12 +45,17 @@
       <aside class="console" aria-label="游戏控制台">
         <header class="brand">
           <div>
-            <p class="eyebrow">SkyEye China</p>
-            <h1>天眼 345 城</h1>
+            <p class="eyebrow" id="gameEyebrow">Chinale 345</p>
+            <h1 id="gameTitle">天眼 345</h1>
           </div>
-          <button class="icon-button" id="newRoundButton" type="button" title="随机开局">
-            <i data-lucide="shuffle"></i>
-          </button>
+          <div class="brand-actions">
+            <button class="icon-button" id="homeButton" type="button" title="选择游戏">
+              <i data-lucide="house"></i>
+            </button>
+            <button class="icon-button" id="newRoundButton" type="button" title="随机开局">
+              <i data-lucide="shuffle"></i>
+            </button>
+          </div>
         </header>
 
         <form class="guess-form" id="guessForm" autocomplete="off">
@@ -179,6 +197,6 @@
     <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
     <script src="https://unpkg.com/pinyin-pro@3.28.1/dist/index.js"></script>
     <script src="assets/cities.js"></script>
-    <script src="app.js"></script>
+    <script type="module" src="app.js"></script>
   </body>
 </html>
