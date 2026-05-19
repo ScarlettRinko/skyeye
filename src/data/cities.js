@@ -1,6 +1,6 @@
 // Factual city names and coordinates for the China city challenge.
 // Includes mainland prefecture-level divisions, four municipalities, Hong Kong, Macao, and six Taiwan cities.
-window.CITY_DATA = [
+export const CITY_DATA = [
   {
     "name": "北京",
     "code": "110000",

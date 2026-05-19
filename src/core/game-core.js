@@ -68,7 +68,11 @@ export function initChinaleApp(gameList, options = {}) {
     { code: "71", codes: ["71"], name: "台湾", short: "台" },
   ];
 
-  const cities = Array.isArray(window.CITY_DATA) ? window.CITY_DATA : [];
+  const cities = Array.isArray(options.cities)
+    ? options.cities
+    : Array.isArray(window.CITY_DATA)
+      ? window.CITY_DATA
+      : [];
   const cityByCleanName = new Map(cities.map((city) => [normalizeName(city.name), city]));
   const cityByCode = new Map(cities.map((city) => [String(city.code), city]));
   const cityShortByCode = buildCityShortByCode();
@@ -99,8 +103,17 @@ export function initChinaleApp(gameList, options = {}) {
   let historyRevealIndex = -1;
   let stats = loadStats(activeGame);
   let state = createEmptyState();
+  let initialized = false;
 
-  document.addEventListener("DOMContentLoaded", init);
+  if (options.autoInit !== false) {
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", init, { once: true });
+    } else {
+      init();
+    }
+  }
+
+  return { init };
 
   function buildGameConfigMap(sourceGames) {
     const configMap = {};
@@ -114,6 +127,11 @@ export function initChinaleApp(gameList, options = {}) {
   }
 
   function init() {
+    if (initialized) {
+      return;
+    }
+
+    initialized = true;
     cacheElements();
     renderGameChoices();
     renderZoomStack();

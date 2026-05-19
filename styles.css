@@ -20,6 +20,23 @@
     "PingFang SC", "Microsoft YaHei", sans-serif;
 }
 
+:root[data-theme="light"] {
+  color-scheme: light;
+  --ink: #10211a;
+  --muted: #52685d;
+  --soft: rgba(16, 33, 26, 0.72);
+  --panel: rgba(255, 255, 255, 0.78);
+  --panel-strong: rgba(255, 255, 255, 0.94);
+  --line: rgba(22, 62, 46, 0.16);
+  --accent: #0d9f6e;
+  --accent-strong: #067a52;
+  --amber: #d88400;
+  --cyan: #1687a8;
+  --rose: #d93f63;
+  --blue: #496be8;
+  --shadow: 0 24px 70px rgba(24, 55, 43, 0.15);
+}
+
 * {
   box-sizing: border-box;
 }
@@ -88,6 +105,13 @@ button {
 .game-select-header {
   display: grid;
   gap: 8px;
+}
+
+.game-select-header-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
 }
 
 .game-select-header p:last-child {
@@ -223,6 +247,7 @@ button {
   mix-blend-mode: overlay;
 }
 
+.map-back-button,
 .map-badge,
 .zoom-stack {
   position: absolute;
@@ -235,8 +260,19 @@ button {
   box-shadow: var(--shadow);
 }
 
-.map-badge {
+.map-back-button {
   left: 24px;
+  top: 24px;
+  gap: 8px;
+  height: 44px;
+  padding: 0 14px;
+  border-radius: 999px;
+  color: var(--soft);
+  cursor: pointer;
+}
+
+.map-badge {
+  left: 116px;
   top: 24px;
   gap: 10px;
   height: 44px;
@@ -245,6 +281,7 @@ button {
   color: var(--soft);
 }
 
+.map-back-button svg,
 .map-badge svg,
 .icon-button svg,
 .primary-button svg,
@@ -314,13 +351,95 @@ button {
   align-items: flex-start;
   justify-content: space-between;
   gap: 18px;
-  margin-bottom: 24px;
+  margin-bottom: 10px;
+}
+
+.brand-copy {
+  min-width: 0;
 }
 
 .brand-actions {
   display: flex;
   flex: 0 0 auto;
   gap: 8px;
+}
+
+.theme-toggle {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 2px;
+  height: 42px;
+  padding: 3px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.theme-toggle-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 34px;
+  height: 34px;
+  padding: 0 9px;
+  border-radius: var(--radius-sm);
+  color: var(--muted);
+  background: transparent;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 850;
+  line-height: 1;
+  transition:
+    color 160ms ease,
+    background 160ms ease,
+    transform 160ms ease;
+}
+
+.theme-toggle-button svg {
+  width: 16px;
+  height: 16px;
+  stroke-width: 2.2;
+}
+
+.theme-toggle-button:hover {
+  color: var(--ink);
+  background: rgba(72, 224, 164, 0.12);
+}
+
+.theme-toggle-button.is-active {
+  color: #06140f;
+  background: var(--accent);
+}
+
+.theme-toggle-button:active {
+  transform: translateY(1px);
+}
+
+.brand-actions .theme-toggle-button {
+  width: 34px;
+  padding: 0;
+}
+
+.brand-actions .theme-toggle-button span {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.round-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 20px;
+}
+
+.new-round-button {
+  min-height: 40px;
+  padding: 0 14px;
 }
 
 .eyebrow {
@@ -374,6 +493,7 @@ h2 {
   background: rgba(255, 255, 255, 0.08);
 }
 
+.map-back-button:hover,
 .icon-button:hover,
 .secondary-button:hover,
 .text-button:hover {
@@ -381,6 +501,7 @@ h2 {
   background: rgba(72, 224, 164, 0.12);
 }
 
+.map-back-button:active,
 .icon-button:active,
 .primary-button:active,
 .secondary-button:active,
@@ -1248,6 +1369,198 @@ button:disabled {
   margin-top: 24px;
 }
 
+:root[data-theme="light"] body {
+  background:
+    linear-gradient(135deg, rgba(244, 250, 247, 0.98), rgba(232, 244, 239, 0.98) 54%, rgba(247, 243, 234, 0.98)),
+    #f6faf8;
+}
+
+:root[data-theme="light"] .game-select-card,
+:root[data-theme="light"] .city-picker-shell,
+:root[data-theme="light"] .result-shell {
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.98), rgba(240, 247, 244, 0.96)),
+    var(--panel-strong);
+}
+
+:root[data-theme="light"] .game-select-card,
+:root[data-theme="light"] .game-card,
+:root[data-theme="light"] .history-empty,
+:root[data-theme="light"] .history-row,
+:root[data-theme="light"] .city-picker-dialog,
+:root[data-theme="light"] .result-dialog {
+  border-color: var(--line);
+}
+
+:root[data-theme="light"] .game-card {
+  background:
+    linear-gradient(145deg, rgba(13, 159, 110, 0.1), rgba(255, 255, 255, 0.7)),
+    rgba(255, 255, 255, 0.82);
+}
+
+:root[data-theme="light"] .game-card:hover {
+  border-color: rgba(13, 159, 110, 0.42);
+  background:
+    linear-gradient(145deg, rgba(13, 159, 110, 0.16), rgba(22, 135, 168, 0.09)),
+    rgba(255, 255, 255, 0.9);
+}
+
+:root[data-theme="light"] .game-card-icon,
+:root[data-theme="light"] .feedback,
+:root[data-theme="light"] .feedback-icon,
+:root[data-theme="light"] .picker-count,
+:root[data-theme="light"] .province-column-head,
+:root[data-theme="light"] .suggestion:hover,
+:root[data-theme="light"] .suggestion.is-highlighted,
+:root[data-theme="light"] .zoom-step.is-past {
+  background: rgba(13, 159, 110, 0.1);
+}
+
+:root[data-theme="light"] .map-stage,
+:root[data-theme="light"] .leaflet-container {
+  background: #dce9e3;
+}
+
+:root[data-theme="light"] .map {
+  background:
+    linear-gradient(45deg, rgba(13, 159, 110, 0.08), transparent),
+    #dce9e3;
+}
+
+:root[data-theme="light"] .map.is-atlas-map {
+  background:
+    radial-gradient(circle at 38% 42%, rgba(22, 135, 168, 0.13), transparent 38%),
+    linear-gradient(135deg, rgba(228, 243, 237, 0.98), rgba(238, 246, 243, 0.98) 58%, rgba(248, 244, 235, 0.98));
+}
+
+:root[data-theme="light"] .map-vignette {
+  background:
+    radial-gradient(circle at 42% 45%, transparent 0, transparent 46%, rgba(255, 255, 255, 0.1) 74%, rgba(255, 255, 255, 0.34) 100%),
+    linear-gradient(90deg, rgba(244, 250, 247, 0.24), transparent 30%, transparent 70%, rgba(244, 250, 247, 0.28));
+}
+
+:root[data-theme="light"] .scanline {
+  opacity: 0.14;
+  background-image: linear-gradient(rgba(16, 33, 26, 0.08) 1px, transparent 1px);
+}
+
+:root[data-theme="light"] .map-back-button,
+:root[data-theme="light"] .map-badge,
+:root[data-theme="light"] .zoom-stack,
+:root[data-theme="light"] .console,
+:root[data-theme="light"] .suggestions,
+:root[data-theme="light"] .icon-button,
+:root[data-theme="light"] .secondary-button,
+:root[data-theme="light"] .text-button,
+:root[data-theme="light"] .theme-toggle,
+:root[data-theme="light"] .metric,
+:root[data-theme="light"] .input-wrap,
+:root[data-theme="light"] .history-empty,
+:root[data-theme="light"] .history-row,
+:root[data-theme="light"] .city-chip {
+  border-color: var(--line);
+  background: rgba(255, 255, 255, 0.76);
+}
+
+:root[data-theme="light"] .console {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(239, 247, 243, 0.95)),
+    var(--panel-strong);
+}
+
+:root[data-theme="light"] .map-back-button,
+:root[data-theme="light"] .map-badge,
+:root[data-theme="light"] .zoom-stack,
+:root[data-theme="light"] .suggestions,
+:root[data-theme="light"] .theme-toggle {
+  backdrop-filter: blur(18px);
+}
+
+:root[data-theme="light"] .map-back-button:hover,
+:root[data-theme="light"] .icon-button:hover,
+:root[data-theme="light"] .secondary-button:hover,
+:root[data-theme="light"] .text-button:hover,
+:root[data-theme="light"] .theme-toggle-button:hover {
+  border-color: rgba(13, 159, 110, 0.42);
+  background: rgba(13, 159, 110, 0.1);
+}
+
+:root[data-theme="light"] .primary-button,
+:root[data-theme="light"] .theme-toggle-button.is-active,
+:root[data-theme="light"] .zoom-step.is-active,
+:root[data-theme="light"] .city-chip:hover,
+:root[data-theme="light"] .direction-arrow,
+:root[data-theme="light"] .feedback .direction-arrow {
+  color: #ffffff;
+}
+
+:root[data-theme="light"] .primary-button:hover {
+  background: #16b981;
+}
+
+:root[data-theme="light"] .zoom-step {
+  border-color: rgba(22, 62, 46, 0.13);
+  color: rgba(16, 33, 26, 0.45);
+  background: rgba(255, 255, 255, 0.68);
+}
+
+:root[data-theme="light"] input::placeholder {
+  color: rgba(16, 33, 26, 0.36);
+}
+
+:root[data-theme="light"] .suggestion {
+  border-bottom-color: rgba(22, 62, 46, 0.1);
+}
+
+:root[data-theme="light"] .history-empty {
+  color: rgba(16, 33, 26, 0.42);
+}
+
+:root[data-theme="light"] .history {
+  background:
+    linear-gradient(180deg, rgba(13, 159, 110, 0.045), rgba(255, 255, 255, 0.52)),
+    rgba(255, 255, 255, 0.62);
+  box-shadow: inset 0 0 0 1px rgba(22, 62, 46, 0.06);
+}
+
+:root[data-theme="light"] .history-row {
+  background:
+    radial-gradient(circle at 88% 18%, var(--slot-glow), transparent 34px),
+    rgba(255, 255, 255, 0.72);
+}
+
+:root[data-theme="light"] .history-row.is-empty {
+  border-color: rgba(22, 62, 46, 0.12);
+  background: rgba(255, 255, 255, 0.5);
+}
+
+:root[data-theme="light"] .try-index.is-empty {
+  color: rgba(16, 33, 26, 0.32);
+  background: rgba(16, 33, 26, 0.07);
+}
+
+:root[data-theme="light"] .city-picker-dialog::backdrop,
+:root[data-theme="light"] .result-dialog::backdrop {
+  background: rgba(17, 34, 28, 0.22);
+}
+
+:root[data-theme="light"] .province-column.is-empty .province-column-head,
+:root[data-theme="light"] .city-chip.is-used {
+  color: rgba(16, 33, 26, 0.36);
+  background: rgba(16, 33, 26, 0.055);
+}
+
+:root[data-theme="light"] .leaflet-control-attribution {
+  color: rgba(16, 33, 26, 0.62);
+  background: rgba(255, 255, 255, 0.72);
+}
+
+:root[data-theme="light"] .wrong-boundary-label span {
+  color: #6b4b00;
+  background: rgba(255, 248, 222, 0.88);
+  text-shadow: none;
+}
+
 @keyframes page-panel-pop {
   from {
     opacity: 0;
@@ -1442,7 +1755,7 @@ button:disabled {
   }
 
   .brand {
-    margin-bottom: 16px;
+    margin-bottom: 8px;
   }
 
   .history {
@@ -1457,13 +1770,18 @@ button:disabled {
     margin-bottom: 14px;
   }
 
+  .map-back-button {
+    left: 16px;
+    top: 16px;
+  }
+
   .zoom-stack {
     left: 16px;
     bottom: 16px;
   }
 
   .map-badge {
-    left: 16px;
+    left: 108px;
     top: 16px;
   }
 
@@ -1533,6 +1851,20 @@ button:disabled {
     padding: 20px;
   }
 
+  .game-select-header .theme-toggle-button {
+    width: 34px;
+    padding: 0;
+  }
+
+  .game-select-header .theme-toggle-button span {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+
   .game-choice-grid {
     grid-template-columns: 1fr;
   }
@@ -1566,7 +1898,7 @@ button:disabled {
 
   .brand {
     gap: 12px;
-    margin-bottom: 18px;
+    margin-bottom: 8px;
   }
 
   .eyebrow {
@@ -1577,6 +1909,26 @@ button:disabled {
   .icon-button {
     width: 36px;
     height: 36px;
+  }
+
+  .map-back-button,
+  .map-badge {
+    height: 38px;
+    padding: 0 11px;
+    font-size: 13px;
+  }
+
+  .map-badge {
+    left: 100px;
+  }
+
+  .round-actions {
+    margin-bottom: 18px;
+  }
+
+  .new-round-button {
+    min-height: 38px;
+    padding: 0 12px;
   }
 
   .guess-form {

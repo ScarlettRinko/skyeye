@@ -5,7 +5,7 @@
 - 天眼 345（Skyeye 345）：根据卫星影像判断目标城市。
 - 版图 345（Boundary 345）：根据地级行政区版图、县级划分和驻地点判断目标城市。
 
-两个玩法共享题库、输入检索、城市选择器、猜测记录、距离方向反馈和战绩逻辑。公共游戏引擎在 `src/core/game-core.js`，每个玩法独立放在 `src/games/`，以后新增玩法只需要增加一个游戏配置文件并在 `app.js` 注册。
+两个玩法共享题库、输入检索、城市选择器、猜测记录、距离方向反馈和战绩逻辑。公共游戏引擎在 `src/core/game-core.js`，Vue 入口在 `src/main.js`，页面结构拆在 `src/components/`，每个玩法独立放在 `src/games/`，以后新增玩法只需要增加一个游戏配置文件并在入口中注册。
 
 台湾六城的区级版图使用本地轻量 TopoJSON，来源为 Taiwan.md 整理自 `waiting7777/taiwan-vue-components` 的 MIT 授权数据。
 
@@ -13,21 +13,22 @@
 
 ## 本地预览
 
-直接打开 `index.html`，或者在项目目录运行一个静态服务器：
+安装依赖并启动 Vite 开发服务器：
 
 ```bash
-python -m http.server 4187
+npm install
+npm run dev
 ```
 
-然后访问 `http://127.0.0.1:4187/`。
+然后访问 `http://127.0.0.1:4197/`。
 
 ## Vercel 部署
 
-本项目不需要安装依赖，也不需要构建命令。前端页面为静态文件，`api/boundary.js` 是用于线上读取行政区划边界和县级版图边界的 Vercel API 代理。
+前端使用 Vue 3 + Vite 构建，`api/boundary.js` 是用于线上读取行政区划边界和县级版图边界的 Vercel API 代理。
 
 在 Vercel 导入 GitHub 仓库时：
 
-- Framework Preset: `Other`
-- Build Command: 留空
-- Output Directory: 留空或 `.`
-- Install Command: 留空
+- Framework Preset: `Vite`
+- Build Command: `npm run build`
+- Output Directory: `dist`
+- Install Command: `npm install`
