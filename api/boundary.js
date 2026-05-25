@@ -1,6 +1,6 @@
 const BOUNDARY_BASE_URL = "https://geo.datav.aliyun.com/areas_v3/bound";
 
-module.exports = async function handler(request, response) {
+export default async function handler(request, response) {
   if (request.method === "OPTIONS") {
     setCorsHeaders(response);
     response.status(204).end();
