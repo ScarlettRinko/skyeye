@@ -1,0 +1,16 @@
+{
+  "rewrites": [
+    {
+      "source": "/skyeye",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/boundary",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/cabbage",
+      "destination": "/index.html"
+    }
+  ]
+}

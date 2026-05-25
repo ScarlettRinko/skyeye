@@ -24,6 +24,7 @@ import {
   Satellite,
   Search,
   Shuffle,
+  Sprout,
   Sun,
   TriangleAlert,
   X,
@@ -36,6 +37,7 @@ import App from "./App.vue";
 import { initChinaleApp } from "./core/game-core.js";
 import { CITY_DATA } from "./data/cities.js";
 import { boundaryGame } from "./games/boundary.js";
+import { cabbageGame } from "./games/cabbage.js";
 import { skyeyeGame } from "./games/skyeye.js";
 import { initTheme } from "./theme.js";
 
@@ -61,6 +63,7 @@ const icons = {
   Satellite,
   Search,
   Shuffle,
+  Sprout,
   Sun,
   TriangleAlert,
   X,
@@ -82,7 +85,7 @@ async function bootstrap() {
 
   await nextTick();
 
-  initChinaleApp([skyeyeGame, boundaryGame], {
+  initChinaleApp([skyeyeGame, boundaryGame, cabbageGame], {
     cities: CITY_DATA,
     defaultGameId: "skyeye",
   });

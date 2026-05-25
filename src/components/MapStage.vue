@@ -1,6 +1,7 @@
 <template>
   <section class="map-stage" aria-label="卫星影像区域">
     <div id="map" class="map"></div>
+    <div id="terrainStaticStage" class="terrain-static-stage" hidden></div>
     <div class="map-vignette" aria-hidden="true"></div>
     <div class="scanline" aria-hidden="true"></div>
     <button id="homeButton" class="map-back-button" type="button" title="返回关卡选择">

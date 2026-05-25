@@ -4,8 +4,9 @@
 
 - 天眼 345（Skyeye 345）：根据卫星影像判断目标城市。
 - 版图 345（Boundary 345）：根据地级行政区版图、县级划分和驻地点判断目标城市。
+- 白菜 345（Cabbage 345）：根据绿色阴影地形图和城市轮廓判断目标城市。
 
-两个玩法共享题库、输入检索、城市选择器、猜测记录、距离方向反馈和战绩逻辑。公共游戏引擎在 `src/core/game-core.js`，Vue 入口在 `src/main.js`，页面结构拆在 `src/components/`，每个玩法独立放在 `src/games/`，以后新增玩法只需要增加一个游戏配置文件并在入口中注册。
+三个玩法共享题库、输入检索、城市选择器、猜测记录、距离方向反馈和战绩逻辑。公共游戏引擎在 `src/core/game-core.js`，Vue 入口在 `src/main.js`，页面结构拆在 `src/components/`，每个玩法独立放在 `src/games/`，以后新增玩法只需要增加一个游戏配置文件并在入口中注册。
 
 台湾六城的区级版图使用本地轻量 TopoJSON，来源为 Taiwan.md 整理自 `waiting7777/taiwan-vue-components` 的 MIT 授权数据。
 
@@ -20,11 +21,15 @@ npm install
 npm run dev
 ```
 
-然后访问 `http://127.0.0.1:4197/`。
+然后访问：
+
+- `http://127.0.0.1:4197/skyeye`
+- `http://127.0.0.1:4197/boundary`
+- `http://127.0.0.1:4197/cabbage`
 
 ## Vercel 部署
 
-前端使用 Vue 3 + Vite 构建，`api/boundary.js` 是用于线上读取行政区划边界和县级版图边界的 Vercel API 代理。
+前端使用 Vue 3 + Vite 构建，`api/boundary.js` 是用于线上读取行政区划边界和县级版图边界的 Vercel API 代理，`vercel.json` 将 `/skyeye`、`/boundary` 和 `/cabbage` 重写到同一个前端入口。
 
 在 Vercel 导入 GitHub 仓库时：
 

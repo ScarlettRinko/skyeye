@@ -26,6 +26,12 @@ export function initChinaleApp(gameList, options = {}) {
     { label: "大区", spanKm: 2048 },
   ];
   const BOUNDARY_DIRECT_BASE_URL = "https://geo.datav.aliyun.com/areas_v3/bound";
+  const TERRAIN_TILE_URL =
+    "https://server.arcgisonline.com/ArcGIS/rest/services/World_Shaded_Relief/MapServer/tile/{z}/{y}/{x}";
+  const TARGET_BOUNDARY_CLASS = "target-boundary-path";
+  const ATLAS_TARGET_BOUNDARY_CLASS = `${TARGET_BOUNDARY_CLASS} atlas-target-boundary-path`;
+  const TARGET_BOUNDARY_COLOR = "#48e0a4";
+  const TARGET_BOUNDARY_WEIGHT = 4;
   const TAIWAN_BOUNDARY_URL =
     "https://raw.githubusercontent.com/g0v/twgeojson/master/json/twCounty2010merge.topo.json";
   const TAIWAN_BOUNDARY_NAMES_BY_CODE = {
@@ -98,6 +104,7 @@ export function initChinaleApp(gameList, options = {}) {
   let atlasTargetBounds = null;
   let boundaryRenderToken = 0;
   let mapRefreshFrame = null;
+  let terrainRefreshFrame = null;
   let correctingMapView = false;
   let highlightedSuggestion = -1;
   let historyRevealIndex = -1;
@@ -140,9 +147,12 @@ export function initChinaleApp(gameList, options = {}) {
     refreshIcons();
     updateGameChrome();
 
-    const routeGame = getGameFromHash();
-    if (routeGame) {
-      selectGame(routeGame.id, { updateHash: false });
+    const routeMatch = getGameRouteMatch();
+    if (routeMatch) {
+      selectGame(routeMatch.game.id, {
+        updateRoute: routeMatch.isLegacyHash,
+        replaceRoute: routeMatch.isLegacyHash,
+      });
     } else {
       showGameSelection();
     }
@@ -156,6 +166,7 @@ export function initChinaleApp(gameList, options = {}) {
       "gameEyebrow",
       "gameTitle",
       "map",
+      "terrainStaticStage",
       "targetMode",
       "zoomStack",
       "homeButton",
@@ -218,7 +229,9 @@ export function initChinaleApp(gameList, options = {}) {
     els.gameChoiceGrid?.querySelectorAll("[data-game-id]").forEach((button) => {
       button.addEventListener("click", () => selectGame(button.dataset.gameId));
     });
+    window.addEventListener("popstate", handleRouteChange);
     window.addEventListener("hashchange", handleRouteChange);
+    window.addEventListener("resize", handleViewportResize);
 
     els.guessForm.addEventListener("submit", handleSubmit);
     els.cityInput.addEventListener("input", handleInput);
@@ -232,7 +245,7 @@ export function initChinaleApp(gameList, options = {}) {
     });
 
     els.homeButton.addEventListener("click", () => {
-      showGameSelection({ updateHash: true });
+      showGameSelection({ updateRoute: true });
     });
 
     els.newRoundButton.addEventListener("click", () => {
@@ -273,32 +286,60 @@ export function initChinaleApp(gameList, options = {}) {
     els.closeDialogButton.addEventListener("click", closeDialog);
   }
 
-  function handleRouteChange() {
-    const routeGame = getGameFromHash();
-    if (routeGame) {
-      selectGame(routeGame.id, { updateHash: false });
+  function handleViewportResize() {
+    if (activeGame.mapMode === "terrain") {
+      scheduleTerrainStaticRefresh();
       return;
     }
 
-    showGameSelection({ updateHash: false });
+    scheduleMapRefresh();
   }
 
-  function getGameFromHash() {
-    const hash = decodeURIComponent(window.location.hash || "")
+  function handleRouteChange() {
+    const routeMatch = getGameRouteMatch();
+    if (routeMatch) {
+      selectGame(routeMatch.game.id, {
+        updateRoute: routeMatch.isLegacyHash,
+        replaceRoute: routeMatch.isLegacyHash,
+      });
+      return;
+    }
+
+    showGameSelection({ updateRoute: false });
+  }
+
+  function getGameRouteMatch() {
+    const pathGame = getGameFromRouteKey(window.location.pathname);
+    if (pathGame) {
+      return { game: pathGame, isLegacyHash: false };
+    }
+
+    const hashGame = getGameFromRouteKey(window.location.hash);
+    if (hashGame) {
+      return { game: hashGame, isLegacyHash: true };
+    }
+
+    return null;
+  }
+
+  function getGameFromRouteKey(value) {
+    const key = decodeURIComponent(String(value || ""))
       .replace(/^#\/?/, "")
+      .replace(/^\/+|\/+$/g, "")
+      .split("/")[0]
       .trim()
       .toLowerCase();
-    if (!hash) {
+    if (!key) {
       return null;
     }
 
-    const normalized = hash.replace(/-?345$/g, "");
-    return GAME_CONFIGS[hash] || GAME_CONFIGS[normalized] || null;
+    const normalized = key.replace(/-?345$/g, "");
+    return GAME_CONFIGS[key] || GAME_CONFIGS[normalized] || null;
   }
 
   function selectGame(gameId, options = {}) {
     const game = GAME_CONFIGS[gameId] || GAME_CONFIGS[DEFAULT_GAME_ID];
-    const { updateHash = true } = options;
+    const { updateRoute = true, replaceRoute = false } = options;
     const switchedGame = activeGame.id !== game.id;
     activeGame = game;
     stats = loadStats(activeGame);
@@ -308,8 +349,8 @@ export function initChinaleApp(gameList, options = {}) {
     updateGameChrome();
     updateStatsView();
 
-    if (updateHash && window.location.hash !== `#${game.id}`) {
-      history.pushState("", document.title, `#${game.id}`);
+    if (updateRoute) {
+      updateBrowserRoute(`/${game.id}`, { replace: replaceRoute });
     }
 
     if (switchedGame || !state.target || state.finished) {
@@ -320,7 +361,13 @@ export function initChinaleApp(gameList, options = {}) {
       setInitialFeedback();
       configureMapForActiveGame();
       renderMapForCurrentGame(boundaryRenderToken);
-      setMapView(true);
+      if (activeGame.mapMode !== "terrain") {
+        setMapView(true);
+      }
+    }
+
+    if (activeGame.mapMode === "terrain") {
+      return;
     }
 
     if (!map) {
@@ -331,17 +378,27 @@ export function initChinaleApp(gameList, options = {}) {
   }
 
   function showGameSelection(options = {}) {
-    const { updateHash = false } = options;
+    const { updateRoute = false, replaceRoute = false } = options;
     closeSuggestions();
     closeCityPicker();
     closeDialog();
     els.gameSelect.hidden = false;
     els.gameShell.hidden = true;
-    if (updateHash) {
-      history.pushState("", document.title, window.location.pathname + window.location.search);
+    if (updateRoute) {
+      updateBrowserRoute("/", { replace: replaceRoute });
     }
     document.title = "猜城 345";
     refreshIcons();
+  }
+
+  function updateBrowserRoute(path, options = {}) {
+    const { replace = false } = options;
+    if (window.location.pathname === path && !window.location.hash) {
+      return;
+    }
+
+    const method = replace ? "replaceState" : "pushState";
+    history[method]("", document.title, path);
   }
 
   function updateGameChrome() {
@@ -354,11 +411,22 @@ export function initChinaleApp(gameList, options = {}) {
     }
     els.targetMode.textContent =
       state.mode === "random" ? activeGame.badgeRandom : activeGame.badgeDaily;
-    els.map?.classList.toggle("is-atlas-map", activeGame.mapMode === "atlas");
-    els.map?.classList.toggle("is-satellite-map", activeGame.mapMode === "satellite");
+    syncMapModeClasses();
     els.map?.parentElement?.setAttribute("aria-label", activeGame.mapLabel);
     document.title = `${activeGame.title} | 猜城 345`;
     refreshIcons();
+  }
+
+  function syncMapModeClasses() {
+    const mode = activeGame.mapMode;
+    const stage = els.map?.parentElement || els.terrainStaticStage?.parentElement;
+    stage?.classList.toggle("is-atlas-stage", mode === "atlas");
+    stage?.classList.toggle("is-satellite-stage", mode === "satellite");
+    stage?.classList.toggle("is-terrain-stage", mode === "terrain");
+    els.map?.classList.toggle("is-atlas-map", mode === "atlas");
+    els.map?.classList.toggle("is-satellite-map", mode === "satellite");
+    els.map?.classList.toggle("is-terrain-map", false);
+    els.terrainStaticStage?.classList.toggle("is-terrain-map", mode === "terrain");
   }
 
   function setInitialFeedback() {
@@ -408,7 +476,6 @@ export function initChinaleApp(gameList, options = {}) {
     renderMapForCurrentGame(boundaryRenderToken);
     map.on("dragend zoomend", () => applyMapConstraints());
     map.on("resize", () => applyMapConstraints());
-    window.addEventListener("resize", scheduleMapRefresh);
     window.setTimeout(() => {
       map.invalidateSize({ animate: false });
       setMapView(true);
@@ -437,6 +504,15 @@ export function initChinaleApp(gameList, options = {}) {
   }
 
   function configureMapForActiveGame() {
+    const usesTerrain = activeGame.mapMode === "terrain";
+    syncMapModeClasses();
+    if (els.map) {
+      els.map.hidden = usesTerrain;
+    }
+    if (els.terrainStaticStage) {
+      els.terrainStaticStage.hidden = !usesTerrain;
+    }
+
     if (!map || !satelliteTileLayer) {
       return;
     }
@@ -448,8 +524,10 @@ export function initChinaleApp(gameList, options = {}) {
     if (!usesSatellite && map.hasLayer(satelliteTileLayer)) {
       satelliteTileLayer.remove();
     }
-    els.map.classList.toggle("is-atlas-map", !usesSatellite);
-    els.map.classList.toggle("is-satellite-map", usesSatellite);
+
+    if (!usesTerrain) {
+      scheduleMapRefresh();
+    }
   }
 
   function createEmptyState() {
@@ -497,13 +575,17 @@ export function initChinaleApp(gameList, options = {}) {
     updateGameChrome();
 
     configureMapForActiveGame();
-    applyMapConstraints();
+    if (activeGame.mapMode !== "terrain") {
+      applyMapConstraints();
+    }
     setInitialFeedback();
     renderHistory();
     renderCityBoard();
     updateRoundLabel();
     renderZoomStack();
-    setMapView(true);
+    if (activeGame.mapMode !== "terrain") {
+      setMapView(true);
+    }
     renderMapForCurrentGame(boundaryRenderToken);
   }
 
@@ -739,12 +821,19 @@ export function initChinaleApp(gameList, options = {}) {
     atlasSubdivisionLayerGroup?.clearLayers();
     atlasSeatLayerGroup?.clearLayers();
     atlasTargetBounds = null;
+    clearTerrainStaticImage();
   }
 
   function renderMapForCurrentGame(token) {
     if (activeGame.mapMode === "atlas") {
       clearTargetCenterMarker();
       renderAtlasTarget(token);
+      return;
+    }
+
+    if (activeGame.mapMode === "terrain") {
+      clearTargetCenterMarker();
+      renderTerrainStaticTarget(token);
       return;
     }
 
@@ -803,10 +892,10 @@ export function initChinaleApp(gameList, options = {}) {
     targetBoundaryLayer = L.geoJSON(geojson, {
       pane: "boundaryPane",
       interactive: false,
-      className: "target-boundary-path",
+      className: TARGET_BOUNDARY_CLASS,
       style: {
-        color: "#48e0a4",
-        weight: 4,
+        color: TARGET_BOUNDARY_COLOR,
+        weight: TARGET_BOUNDARY_WEIGHT,
         opacity: 1,
         fill: false,
         fillOpacity: 0,
@@ -854,10 +943,10 @@ export function initChinaleApp(gameList, options = {}) {
     targetBoundaryLayer = L.geoJSON(targetGeojson || sourceGeojson, {
       pane: "boundaryPane",
       interactive: false,
-      className: "target-boundary-path atlas-target-boundary-path",
+      className: ATLAS_TARGET_BOUNDARY_CLASS,
       style: {
-        color: "#48e0a4",
-        weight: 4,
+        color: TARGET_BOUNDARY_COLOR,
+        weight: TARGET_BOUNDARY_WEIGHT,
         opacity: 1,
         fill: false,
         fillOpacity: 0,
@@ -872,6 +961,259 @@ export function initChinaleApp(gameList, options = {}) {
     targetBoundaryLayer.bringToFront();
     applyMapConstraints(atlasTargetBounds || getCurrentAllowedBounds(), { correct: false });
     setMapView(true);
+  }
+
+  async function renderTerrainStaticTarget(token) {
+    if (!els.terrainStaticStage || !state.target) {
+      return;
+    }
+
+    const target = state.target;
+    els.terrainStaticStage.innerHTML = '<div class="terrain-static-loading"></div>';
+
+    const geojson = await loadBoundary(target);
+    if (token !== boundaryRenderToken || target !== state.target) {
+      return;
+    }
+
+    if (!geojson) {
+      setFeedback("triangle-alert", activeGame.loadFailTitle, `${target.name} 的地形轮廓没有加载成功。`);
+      els.terrainStaticStage.innerHTML = `<div class="terrain-static-error">${escapeHtml(activeGame.loadFailText)}</div>`;
+      return;
+    }
+
+    const markup = createTerrainStaticSvg(geojson, target);
+    if (!markup) {
+      setFeedback("triangle-alert", activeGame.loadFailTitle, `${target.name} 的地形轮廓没有加载成功。`);
+      els.terrainStaticStage.innerHTML = `<div class="terrain-static-error">${escapeHtml(activeGame.loadFailText)}</div>`;
+      return;
+    }
+
+    els.terrainStaticStage.innerHTML = markup;
+  }
+
+  function clearTerrainStaticImage() {
+    if (els.terrainStaticStage) {
+      els.terrainStaticStage.innerHTML = "";
+    }
+  }
+
+  function scheduleTerrainStaticRefresh() {
+    if (terrainRefreshFrame !== null) {
+      window.cancelAnimationFrame(terrainRefreshFrame);
+    }
+
+    terrainRefreshFrame = window.requestAnimationFrame(() => {
+      terrainRefreshFrame = null;
+      if (activeGame.mapMode !== "terrain" || !state.target) {
+        return;
+      }
+
+      boundaryRenderToken += 1;
+      renderMapForCurrentGame(boundaryRenderToken);
+    });
+  }
+
+  function createTerrainStaticSvg(geojson, target) {
+    const rings = getGeoJsonExteriorRings(geojson)
+      .map(closeRing)
+      .filter((ring) => ring.length >= 4);
+    if (!rings.length) {
+      return null;
+    }
+
+    const projectedRings = rings
+      .map((ring) => ring.map(([lng, lat]) => projectLngLatToWorld(lng, lat)))
+      .filter((ring) => ring.length >= 4);
+    const terrainBounds = getPointBounds(projectedRings.flat());
+    if (!terrainBounds) {
+      return null;
+    }
+
+    const paddedBounds = padWorldBounds(terrainBounds, 0.16);
+    const width = Math.max(640, Math.round(els.terrainStaticStage?.clientWidth || 1200));
+    const height = Math.max(480, Math.round(els.terrainStaticStage?.clientHeight || 760));
+    const transform = createWorldToSvgTransform(paddedBounds, width, height);
+    const pathData = projectedRings
+      .map((ring) => createSvgRingPath(ring, transform))
+      .filter(Boolean)
+      .join(" ");
+    if (!pathData) {
+      return null;
+    }
+
+    const zoom = chooseTerrainTileZoom(paddedBounds);
+    const tiles = createTerrainTileImages(paddedBounds, zoom, transform)
+      .map(
+        (tile) => `
+          <image href="${escapeHtml(tile.url)}" x="${tile.x}" y="${tile.y}" width="${tile.width}" height="${tile.height}" preserveAspectRatio="none"></image>
+        `,
+      )
+      .join("");
+
+    const clipId = `terrain-clip-${escapeHtml(String(target?.code || "current"))}`;
+    const boundaryClass = `${ATLAS_TARGET_BOUNDARY_CLASS} terrain-static-boundary-path`;
+    return `
+      <svg class="terrain-static-svg" viewBox="0 0 ${width} ${height}" role="img" aria-label="${escapeHtml(target?.name || "城市")}地形图">
+        <defs>
+          <clipPath id="${clipId}">
+            <path d="${pathData}"></path>
+          </clipPath>
+        </defs>
+        <g clip-path="url(#${clipId})">
+          <g class="terrain-static-tiles">${tiles}</g>
+        </g>
+        <path class="${escapeHtml(boundaryClass)}" d="${pathData}" stroke="${TARGET_BOUNDARY_COLOR}" stroke-width="${TARGET_BOUNDARY_WEIGHT}"></path>
+      </svg>
+    `;
+  }
+
+  function projectLngLatToWorld(lng, lat) {
+    const safeLat = Math.max(-85.05112878, Math.min(85.05112878, Number(lat)));
+    const safeLng = Math.max(-180, Math.min(180, Number(lng)));
+    const latRad = toRadians(safeLat);
+    return {
+      x: (safeLng + 180) / 360,
+      y: (1 - Math.log(Math.tan(latRad) + 1 / Math.cos(latRad)) / Math.PI) / 2,
+    };
+  }
+
+  function getPointBounds(points) {
+    const finitePoints = points.filter(
+      (point) => Number.isFinite(point.x) && Number.isFinite(point.y),
+    );
+    if (!finitePoints.length) {
+      return null;
+    }
+
+    return finitePoints.reduce(
+      (bounds, point) => ({
+        minX: Math.min(bounds.minX, point.x),
+        minY: Math.min(bounds.minY, point.y),
+        maxX: Math.max(bounds.maxX, point.x),
+        maxY: Math.max(bounds.maxY, point.y),
+      }),
+      {
+        minX: finitePoints[0].x,
+        minY: finitePoints[0].y,
+        maxX: finitePoints[0].x,
+        maxY: finitePoints[0].y,
+      },
+    );
+  }
+
+  function padWorldBounds(bounds, ratio) {
+    const width = Math.max(bounds.maxX - bounds.minX, 0.0005);
+    const height = Math.max(bounds.maxY - bounds.minY, 0.0005);
+    return {
+      minX: Math.max(0, bounds.minX - width * ratio),
+      minY: Math.max(0, bounds.minY - height * ratio),
+      maxX: Math.min(1, bounds.maxX + width * ratio),
+      maxY: Math.min(1, bounds.maxY + height * ratio),
+    };
+  }
+
+  function createWorldToSvgTransform(bounds, width, height) {
+    const boundsWidth = Math.max(bounds.maxX - bounds.minX, 0.0005);
+    const boundsHeight = Math.max(bounds.maxY - bounds.minY, 0.0005);
+    const scale = Math.min(width / boundsWidth, height / boundsHeight);
+    const offsetX = (width - boundsWidth * scale) / 2 - bounds.minX * scale;
+    const offsetY = (height - boundsHeight * scale) / 2 - bounds.minY * scale;
+    return (point) => ({
+      x: point.x * scale + offsetX,
+      y: point.y * scale + offsetY,
+    });
+  }
+
+  function createSvgRingPath(ring, transform) {
+    return ring
+      .map(transform)
+      .map((point, index) => `${index === 0 ? "M" : "L"}${formatSvgNumber(point.x)} ${formatSvgNumber(point.y)}`)
+      .join(" ")
+      .concat(" Z");
+  }
+
+  function chooseTerrainTileZoom(bounds) {
+    for (let zoom = 10; zoom >= 6; zoom -= 1) {
+      const range = getTerrainTileRange(bounds, zoom);
+      const tileCount = (range.maxX - range.minX + 1) * (range.maxY - range.minY + 1);
+      if (tileCount <= 36) {
+        return zoom;
+      }
+    }
+    return 6;
+  }
+
+  function getTerrainTileRange(bounds, zoom) {
+    const tileCount = 2 ** zoom;
+    const maxTile = tileCount - 1;
+    return {
+      minX: Math.max(0, Math.min(maxTile, Math.floor(bounds.minX * tileCount))),
+      maxX: Math.max(0, Math.min(maxTile, Math.floor(bounds.maxX * tileCount))),
+      minY: Math.max(0, Math.min(maxTile, Math.floor(bounds.minY * tileCount))),
+      maxY: Math.max(0, Math.min(maxTile, Math.floor(bounds.maxY * tileCount))),
+    };
+  }
+
+  function createTerrainTileImages(bounds, zoom, transform) {
+    const range = getTerrainTileRange(bounds, zoom);
+    const tileCount = 2 ** zoom;
+    const tiles = [];
+    for (let y = range.minY; y <= range.maxY; y += 1) {
+      for (let x = range.minX; x <= range.maxX; x += 1) {
+        const topLeft = transform({ x: x / tileCount, y: y / tileCount });
+        const bottomRight = transform({ x: (x + 1) / tileCount, y: (y + 1) / tileCount });
+        tiles.push({
+          url: getTerrainTileUrl(zoom, x, y),
+          x: formatSvgNumber(topLeft.x),
+          y: formatSvgNumber(topLeft.y),
+          width: formatSvgNumber(bottomRight.x - topLeft.x),
+          height: formatSvgNumber(bottomRight.y - topLeft.y),
+        });
+      }
+    }
+    return tiles;
+  }
+
+  function getTerrainTileUrl(zoom, x, y) {
+    return TERRAIN_TILE_URL.replace("{z}", zoom).replace("{x}", x).replace("{y}", y);
+  }
+
+  function formatSvgNumber(value) {
+    return Number(value).toFixed(2).replace(/\.?0+$/g, "");
+  }
+
+  function getGeoJsonExteriorRings(geojson) {
+    return getGeoJsonFeatures(geojson)
+      .flatMap((feature) => {
+        const geometry = feature?.geometry;
+        if (!geometry) {
+          return [];
+        }
+        if (geometry.type === "Polygon") {
+          return geometry.coordinates?.[0] ? [geometry.coordinates[0]] : [];
+        }
+        if (geometry.type === "MultiPolygon") {
+          return (geometry.coordinates || [])
+            .map((polygon) => polygon?.[0])
+            .filter(Boolean);
+        }
+        return [];
+      })
+      .filter((ring) => Array.isArray(ring));
+  }
+
+  function closeRing(ring) {
+    const normalizedRing = ring
+      .filter((point) => Array.isArray(point) && point.length >= 2)
+      .map(([lng, lat]) => [Number(lng), Number(lat)])
+      .filter(([lng, lat]) => Number.isFinite(lng) && Number.isFinite(lat));
+    const first = normalizedRing[0];
+    const last = normalizedRing[normalizedRing.length - 1];
+    if (first && last && (first[0] !== last[0] || first[1] !== last[1])) {
+      normalizedRing.push([...first]);
+    }
+    return normalizedRing;
   }
 
   function getAtlasFeatureStyle(feature) {

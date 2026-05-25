@@ -2,5 +2,6 @@
 .vercel/
 node_modules/
 dist/
+vite-dev*.log
 .DS_Store
 Thumbs.db
